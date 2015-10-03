@@ -49,3 +49,13 @@ func TestSingleByteXorScore(t *testing.T) {
     }
 
 }
+
+func TestHammingWeight(t *testing.T) {
+    s1 := []byte("this is a test")
+    s2 := []byte("wokka wokka!!!")
+    if weight := HammingWeight(s1, s2); weight != 37 {
+        t.Errorf("HammingWeight: Expected weight does not match actual weight.")
+        t.Errorf("Expected: %d\n",37)
+        t.Errorf("Actual:   %d\n", weight)
+    }
+}

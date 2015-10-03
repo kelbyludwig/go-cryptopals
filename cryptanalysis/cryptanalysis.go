@@ -82,3 +82,17 @@ func FindSingleCharXorPT(ciphertext []byte) []byte {
     }
     return maxPT
 }
+
+func HammingWeight(bs1 []byte, bs2[]byte) int {
+    var weight int
+    bs := xor.Xor(bs1, bs2)
+    for _,b := range bs {
+        var i byte
+        for i = 1; i < 128; i= i<<1 {
+            if b & i == i {
+                weight += 1
+            }
+        }
+    }
+    return weight
+}
