@@ -19,6 +19,8 @@ func TestPlaintextScore(t *testing.T) {
 }
 
 func TestSingleByteXorScore(t *testing.T) {
+    expected_plaintext := "Now that the party is jumping\n"
+
     file, err := os.Open("../files/4.txt")
     if err != nil {
         t.Errorf("SingleByteXorScore: Error opening 4.txt")
@@ -32,7 +34,7 @@ func TestSingleByteXorScore(t *testing.T) {
     for scanner.Scan() {
         line := encoding.HexToBytes(scanner.Text())
         if SingleByteXorScore(line) {
-            t.Log("Detected Single Byte XOR: ", line)
+            //t.Log("Detected Single Byte XOR: ", line)
             winner = line
             continue
         }
@@ -40,6 +42,10 @@ func TestSingleByteXorScore(t *testing.T) {
             t.Errorf("SingleByteXorScore: Detected more than one possible single character xor ciphertext")
         }
     }
-    t.Log("Plaintext: ", string(FindSingleCharXorPT(winner)))
+    if actual_plaintext := string(FindSingleCharXorPT(winner)); actual_plaintext != expected_plaintext {
+        t.Errorf("SingleByteXorScore: Expected decrypted text does not match actual decrypted text.")
+        t.Errorf("Expected: %v\n", expected_plaintext)
+        t.Errorf("Actual:   %v\n", actual_plaintext)
+    }
 
 }

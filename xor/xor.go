@@ -25,10 +25,19 @@ func AllBytes() []byte {
     return is
 }
 
-func SingleCharXor(key byte, bs []byte) []byte {
-    ct := make([]byte, len(bs))
-    for i,b := range bs {
+func SingleCharXor(key byte, plaintext []byte) []byte {
+    ct := make([]byte, len(plaintext))
+    for i,b := range plaintext {
         ct[i] = b ^ key
     }
     return ct
+}
+
+func RepeatKeyXor(key []byte, plaintext []byte) []byte {
+
+    var ciphertext []byte = make([]byte, len(plaintext))
+    for i,_ := range plaintext {
+        ciphertext[i] = key[i % len(key)] ^ plaintext[i]
+    }
+    return ciphertext
 }
