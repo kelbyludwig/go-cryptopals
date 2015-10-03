@@ -15,3 +15,20 @@ func Xor(a, b []byte) []byte {
     }
     return c
 }
+
+func AllBytes() []byte {
+    var i byte
+    var is []byte = make([]byte, 255)
+    for i = 0; i < 255; i++ {
+        is[int(i)] = byte(i)
+    }
+    return is
+}
+
+func SingleCharXor(key byte, bs []byte) []byte {
+    ct := make([]byte, len(bs))
+    for i,b := range bs {
+        ct[i] = b ^ key
+    }
+    return ct
+}

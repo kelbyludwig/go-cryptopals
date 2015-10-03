@@ -9,7 +9,5 @@ func TestHexToBase64(t *testing.T) {
     output := HexToBase64(input)
     if output != expected_output {
         t.Errorf("HexToBase64: Expected output does not match actual output.")
-    } else {
-        t.Log("HexToBase64: Success!")
     }
 }
