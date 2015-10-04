@@ -22,12 +22,17 @@ func HexToBytes(hexstring string) []byte {
 
 //Base64 to <X> functions
 func Base64ToHex(basestring string) string {
+    bytes := Base64ToBytes(basestring)
+    return hex.EncodeToString(bytes)
+}
+
+func Base64ToBytes(basestring string) []byte {
     bytes,err := base64.StdEncoding.DecodeString(basestring)
     if err != nil {
-        fmt.Println("[ERR] Base64ToHex failed.")
+        fmt.Println("[ERR] Base64ToBytes failed.")
         panic(err)
     }
-    return hex.EncodeToString(bytes)
+    return bytes
 }
 
 //Bytes to <X> functions

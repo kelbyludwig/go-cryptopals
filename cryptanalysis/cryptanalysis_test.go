@@ -9,7 +9,7 @@ import "github.com/kelbyludwig/cryptopals/encoding"
 func TestPlaintextScore(t *testing.T) {
     plaintext := "Cooking MC's like a pound of bacon"
     ciphertext := encoding.HexToBytes("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736")
-    maxPT := FindSingleCharXorPT(ciphertext)
+    maxPT,_ := BreakSingleCharXor(ciphertext)
     if string(maxPT) != plaintext {
         t.Errorf("PlaintextScore: Expected output does not match actual output.")
         t.Errorf("Expected: %v\n", plaintext)
@@ -18,6 +18,7 @@ func TestPlaintextScore(t *testing.T) {
 
 }
 
+//Test for Set 1 challenge 4
 func TestSingleByteXorScore(t *testing.T) {
     expected_plaintext := "Now that the party is jumping\n"
 
@@ -42,7 +43,7 @@ func TestSingleByteXorScore(t *testing.T) {
             t.Errorf("SingleByteXorScore: Detected more than one possible single character xor ciphertext")
         }
     }
-    if actual_plaintext := string(FindSingleCharXorPT(winner)); actual_plaintext != expected_plaintext {
+    if actual_plaintext,_ := BreakSingleCharXor(winner); string(actual_plaintext) != expected_plaintext {
         t.Errorf("SingleByteXorScore: Expected decrypted text does not match actual decrypted text.")
         t.Errorf("Expected: %v\n", expected_plaintext)
         t.Errorf("Actual:   %v\n", actual_plaintext)
@@ -57,5 +58,33 @@ func TestHammingWeight(t *testing.T) {
         t.Errorf("HammingWeight: Expected weight does not match actual weight.")
         t.Errorf("Expected: %d\n",37)
         t.Errorf("Actual:   %d\n", weight)
+    }
+}
+
+//Test for Set 1 challenge 6
+func TestBreakRepeatingKeyXor(t *testing.T) {
+    file,err := os.Open("../files/6.txt")
+    if err != nil {
+        t.Errorf("RepeatKeyXorKeysize: Error opening file.")
+    }
+
+    defer file.Close()
+
+    scanner := bufio.NewScanner(file)
+
+    var bytes []byte
+    for scanner.Scan() {
+        line := scanner.Text()
+        bytes = append(bytes, encoding.Base64ToBytes(line)...)
+    }
+
+    if FindRepeatKeyXorKeysize(bytes) != 29 {
+        t.Errorf("BreakRepeatingKeyXor: Actual key size did not match expected key size.")
+    }
+
+    _,key := BreakRepeatingKeyXor(bytes)
+    //t.Log(string(key))
+    if string(key) != "Terminator X: Bring the noise" {
+        t.Errorf("BreakRepeatingKeyXor: Actual result did not match exptected result.")
     }
 }

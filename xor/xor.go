@@ -33,8 +33,7 @@ func SingleCharXor(key byte, plaintext []byte) []byte {
     return ct
 }
 
-func RepeatKeyXor(key []byte, plaintext []byte) []byte {
-
+func RepeatingKeyXor(key []byte, plaintext []byte) []byte {
     var ciphertext []byte = make([]byte, len(plaintext))
     for i,_ := range plaintext {
         ciphertext[i] = key[i % len(key)] ^ plaintext[i]

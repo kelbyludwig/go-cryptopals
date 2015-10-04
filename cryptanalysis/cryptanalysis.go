@@ -64,10 +64,9 @@ func SingleByteXorScore(bytestring []byte) bool {
 }
 
 
-func FindSingleCharXorPT(ciphertext []byte) []byte {
+func BreakSingleCharXor(ciphertext []byte) (plaintext []byte, key byte) {
     bytes := xor.AllBytes()
     var maxScore float64 = 0.0
-    var maxPT []byte
 
     for _,b := range bytes {
         var potential_plaintext []byte = make([]byte, len(ciphertext))
@@ -77,10 +76,11 @@ func FindSingleCharXorPT(ciphertext []byte) []byte {
         score := PlaintextScore(potential_plaintext)
         if score > maxScore {
             maxScore = score
-            maxPT = potential_plaintext
+            plaintext = potential_plaintext
+            key = b
         }
     }
-    return maxPT
+    return
 }
 
 func HammingWeight(bs1 []byte, bs2[]byte) int {
@@ -96,3 +96,62 @@ func HammingWeight(bs1 []byte, bs2[]byte) int {
     }
     return weight
 }
+
+func FindRepeatKeyXorKeysize(ciphertext []byte) int {
+    minWeight := 4.0
+    keySize := 0
+    for i := 4; i < 40; i++ {
+        if (4*i) > len(ciphertext) {
+            return keySize
+        }
+        slice1 := ciphertext[0:i]
+        slice2 := ciphertext[i:(2*i)]
+        slice3 := ciphertext[(2*i):(3*i)]
+        slice4 := ciphertext[(3*i):(4*i)]
+
+        weight1 := float64(HammingWeight(slice1, slice2)) / float64(i)
+        weight2 := float64(HammingWeight(slice3, slice4)) / float64(i)
+        weight3 := float64(HammingWeight(slice1, slice3)) / float64(i)
+        weight4 := float64(HammingWeight(slice2, slice4)) / float64(i)
+        weight := (weight1 + weight2 + weight3 + weight4) / 4.0
+
+        if weight < minWeight {
+            minWeight = weight
+            keySize = i
+        }
+    }
+    return keySize
+}
+
+func BreakRepeatingKeyXor(ciphertext []byte) (plaintext, key []byte) {
+    //Determine keysize.
+    keysize := FindRepeatKeyXorKeysize(ciphertext)
+
+    //break ciphertext into blocks
+    numblocks := len(ciphertext)/keysize
+    var blocks [][]byte = make([][]byte, numblocks)
+    for i := 0; i < len(ciphertext)-keysize; i += keysize {
+        blocks[i/keysize] = ciphertext[i:i+keysize]
+    }
+
+    //initialize inner slices
+    var transposed [][]byte = make([][]byte, keysize)
+    for i,_ := range transposed {
+        transposed[i] = make([]byte, numblocks)
+    }
+
+    //transpose blocks
+    for i,block := range blocks {
+        for j,_ := range block {
+            transposed[j][i] = blocks[i][j]
+        }
+    }
+
+    //Iterate over tranposed blocks cracking each key at a time.
+    for _,block := range transposed {
+        _,keybyte := BreakSingleCharXor(block)
+        key = append(key, keybyte)
+    }
+    return xor.RepeatingKeyXor(key, ciphertext), key
+}
+
