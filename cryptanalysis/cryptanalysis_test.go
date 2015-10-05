@@ -88,3 +88,25 @@ func TestBreakRepeatingKeyXor(t *testing.T) {
         t.Errorf("BreakRepeatingKeyXor: Actual result did not match exptected result.")
     }
 }
+
+//Test for Set 1 challenge 8
+func TestDetectECBMode(t *testing.T) {
+    file,err := os.Open("../files/8.txt")
+    if err != nil {
+        t.Errorf("DetectECBMode: Error opening file.")
+    }
+
+    defer file.Close()
+
+    scanner := bufio.NewScanner(file)
+
+    var detected bool
+    for scanner.Scan() {
+        line := encoding.HexToBytes(scanner.Text())
+        if DetectECBMode(line) && detected {
+            t.Errorf("DetectECBMode: Detected multiple lines.")
+            detected = true
+        }
+    }
+
+}

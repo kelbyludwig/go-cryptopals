@@ -155,3 +155,23 @@ func BreakRepeatingKeyXor(ciphertext []byte) (plaintext, key []byte) {
     return xor.RepeatingKeyXor(key, ciphertext), key
 }
 
+//If there are duplicate ciphertext blocks, return true.
+func DetectECBMode(ciphertext []byte) bool {
+    var blocks []string = make([]string, len(ciphertext)/16)
+    var index int
+    for len(ciphertext) > 0 {
+        blocks[index] = string(ciphertext[:16])
+        ciphertext = ciphertext[16:]
+        index++
+    }
+    var dups map[string]int = make(map[string]int)
+    for _,block := range blocks {
+        _,exists := dups[block]
+        if exists {
+            return true
+        } else {
+            dups[block] = 0
+        }
+    }
+    return false
+}
