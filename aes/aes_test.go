@@ -29,3 +29,13 @@ func TestAESDecrypt(t *testing.T) {
         t.Errorf("Expected: %v\n", ciphertext)
     }
 }
+
+//Test for Set 2 challenge 1
+func TestPad(t *testing.T) {
+    input := []byte("YELLOW SUBMARINE")
+    result := string(Pad(input, 20))
+    expected_result := "YELLOW SUBMARINE\x04\x04\x04\x04"
+    if result != expected_result {
+        t.Errorf("Pad: Padding does not match expected result")
+    }
+}
