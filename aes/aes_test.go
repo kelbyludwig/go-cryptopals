@@ -30,7 +30,7 @@ func TestAESDecrypt(t *testing.T) {
     }
 }
 
-//Test for Set 2 challenge 1
+//Test for Set 2 challenge 9
 func TestPad(t *testing.T) {
     input := []byte("YELLOW SUBMARINE")
     result := string(Pad(input, 20))
@@ -38,4 +38,29 @@ func TestPad(t *testing.T) {
     if result != expected_result {
         t.Errorf("Pad: Padding does not match expected result")
     }
+}
+
+//Test for Set 2 challenge 10
+func TestCBCMode(t *testing.T) {
+    key := []byte("YELLOW SUBMARINE")
+    iv := []byte("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
+    file,err := os.Open("../files/10.txt")
+    if err != nil {
+        fmt.Println("[ERR] CBCMode test failed to open file.")
+        os.Exit(1)
+    }
+    defer file.Close()
+
+    scanner := bufio.NewScanner(file)
+
+    var ciphertext []byte
+    for scanner.Scan() {
+        line := encoding.Base64ToBytes(scanner.Text())
+        ciphertext = append(ciphertext, []byte(line)...)
+    }
+
+    if string(CBCEncrypt(key, iv, (CBCDecrypt(key, iv, ciphertext)))) != string(ciphertext) {
+        t.Errorf("CBCMode: Expected result did not match actual result")
+    }
+
 }

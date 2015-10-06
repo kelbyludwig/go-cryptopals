@@ -3,6 +3,32 @@ package aes
 import "fmt"
 import "os"
 import "crypto/aes"
+import "github.com/kelbyludwig/cryptopals/xor"
+
+func CBCEncrypt(key, iv, plaintext []byte) (ciphertext []byte) {
+    for len(plaintext) > 0 {
+        pt_block := plaintext[:16]
+        intermediate_block := xor.Xor(iv, pt_block)
+        ct_block := ECBEncrypt(key, intermediate_block)
+        ciphertext = append(ciphertext, ct_block...)
+        iv = ct_block
+        plaintext = plaintext[16:]
+    }
+    return ciphertext
+}
+
+func CBCDecrypt(key, iv, ciphertext []byte) (plaintext []byte) {
+    for len(ciphertext) > 0 {
+        ct_block := ciphertext[:16]
+        pt_block := ECBDecrypt(key, ct_block)
+        pt_block = xor.Xor(iv, pt_block)
+        plaintext = append(plaintext, pt_block...)
+        iv = ct_block
+        ciphertext = ciphertext[16:]
+    }
+    return plaintext
+}
+
 
 func ECBEncrypt(key, plaintext []byte) (ciphertext []byte) {
 	block,err := aes.NewCipher(key)
@@ -64,4 +90,3 @@ func Pad(input []byte, block_size int) []byte {
     }
     return append(input, padding...)
 }
-
