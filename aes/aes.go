@@ -80,10 +80,7 @@ func ECBDecrypt(key, ciphertext []byte) (plaintext []byte) {
 
 func Pad(input []byte, block_size int) []byte {
     l := len(input)
-    pad_value := block_size % l
-    if pad_value == 0 {
-        pad_value = block_size
-    }
+    pad_value := block_size - (l % block_size)
     var padding []byte = make([]byte, pad_value)
     for i := 0; i < pad_value; i++ {
         padding[i] = byte(pad_value)

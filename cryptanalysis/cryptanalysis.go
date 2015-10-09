@@ -175,3 +175,11 @@ func DetectECBMode(ciphertext []byte) bool {
     }
     return false
 }
+
+func AESModeDetectionOracle(ciphertext []byte) string {
+    if DetectECBMode(ciphertext) {
+        return "ECB"
+    } else {
+        return "CBC"
+    }
+}

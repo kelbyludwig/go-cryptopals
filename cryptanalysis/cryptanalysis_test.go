@@ -3,6 +3,9 @@ package cryptanalysis
 import "os"
 import "bufio"
 import "testing"
+import "crypto/rand"
+import "encoding/binary"
+import "github.com/kelbyludwig/cryptopals/aes"
 import "github.com/kelbyludwig/cryptopals/encoding"
 
 //Test for Set 1 challenge 3
@@ -109,4 +112,65 @@ func TestDetectECBMode(t *testing.T) {
         }
     }
 
+}
+
+//Test case for Set 2 Challenge 11
+func TestDetectionOracle(t *testing.T) {
+	//Simulating data i would send myself
+	testcase := []byte("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+
+    //Big ugly oracle function.
+	oracle := func (plaintext []byte) (result []byte, mode string) {
+		key := make([]byte, 16)
+        _,err := rand.Read(key)
+        if err != nil {
+            t.Errorf("DetectionOracle: Reading random bytes failed.")
+        }
+
+        //"Coin flip"                                                                                                                                       
+		var number byte
+		binary.Read(rand.Reader, binary.LittleEndian, &number)
+        cbc := false
+        if number % 2 == 0 {
+            cbc = true
+        }
+
+		//Random prefix and postfix
+		var pre uint32
+		var post uint32
+		binary.Read(rand.Reader, binary.LittleEndian, &pre)
+		binary.Read(rand.Reader, binary.LittleEndian, &post)
+		predata := make([]byte, pre % 10)
+	    postdata := make([]byte, post % 10)
+		rand.Read(predata)
+		rand.Read(postdata)
+		data := append(predata, plaintext...)
+		data = append(data, postdata...)
+        data = aes.Pad(data, 16)
+
+        if cbc {
+            iv := make([]byte, 16)
+            _,err := rand.Read(iv)
+            if err != nil {
+                t.Errorf("DetectionOracle: Reading random bytes failed.")
+            }
+			result = aes.CBCEncrypt(key, iv, data)
+			mode = "CBC"
+			return
+		} else {
+			result = aes.ECBEncrypt(key, data)
+			mode = "ECB"
+			return
+		}
+	}
+
+    //Iterate oracle
+    for i := 0; i < 40; i++ {
+	    data, mode := oracle(testcase)
+        if output := AESModeDetectionOracle(data); output != mode {
+            t.Errorf("DetectionOracle: Detection oracle failed to guess correctly.")
+            t.Errorf("\tExpected: %v", mode)
+            t.Errorf("\tGuessed:  %v", output)
+        }
+    }
 }

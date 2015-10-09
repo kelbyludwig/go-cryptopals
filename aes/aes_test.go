@@ -62,5 +62,4 @@ func TestCBCMode(t *testing.T) {
     if string(CBCEncrypt(key, iv, (CBCDecrypt(key, iv, ciphertext)))) != string(ciphertext) {
         t.Errorf("CBCMode: Expected result did not match actual result")
     }
-
 }
