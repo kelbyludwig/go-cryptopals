@@ -11,7 +11,7 @@ go test github.com/kelbyludwig/cryptopals/cryptanalysis -v
 go install github.com/kelbyludwig/cryptopals/cryptanalysis
 echo "----------------------------------------------"
 echo "BUILDING USER"
-go test github.com/kelbyludwig/cryptopals/user
+go test github.com/kelbyludwig/cryptopals/user -v
 go install github.com/kelbyludwig/cryptopals/user
 echo "----------------------------------------------"
 echo "BUILDING AES"

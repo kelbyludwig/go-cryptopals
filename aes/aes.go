@@ -2,6 +2,7 @@ package aes
 
 import "fmt"
 import "os"
+import "crypto/rand"
 import "crypto/aes"
 import "github.com/kelbyludwig/cryptopals/xor"
 
@@ -86,4 +87,13 @@ func Pad(input []byte, block_size int) []byte {
         padding[i] = byte(pad_value)
     }
     return append(input, padding...)
+}
+
+func RandBytes(size int) []byte {
+    bytes := make([]byte, size)
+    _, err := rand.Read(bytes)
+    if err != nil {
+        panic(err)
+    }
+    return bytes
 }
