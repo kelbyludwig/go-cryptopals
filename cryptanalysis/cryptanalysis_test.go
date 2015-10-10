@@ -199,4 +199,20 @@ func TestECBChosenPrefixAttack(t *testing.T) {
     }
 
     //Determine if oracle is using ECB mode
+
+    //TODO: This is silly. You should make your cryptanalysis functions take an oracle function. Will be more reusable.
+    data := []byte("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    if !DetectECB256Mode(oracle(data)) {
+        t.Errorf("ECBChosenPrefixAttack: Failed to correctly guess that the oracle used ECB mode.")
+    }
+
+    result := ECBSecretSuffixAttack(oracle)
+    expected_result := `Rollin' in my 5.0
+    With my rag-top down so my hair can blow
+    The girlies on standby waving just to say hi
+    Did you stop? No, I just drove by`
+    if result[:12] != expected_result[:12] {
+        t.Errorf("ECBChosenPrefixAttack: Expected decryption did not actually match real decryption")
+    }
+
 }

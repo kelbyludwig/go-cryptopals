@@ -237,3 +237,37 @@ func DetermineOracleBlockSize(oracle func(input []byte) []byte) int {
         }
     }
 }
+
+func ECBSecretSuffixAttack(oracle func(input []byte) []byte) string {
+    bs := DetermineOracleBlockSize(oracle)
+    //Change this if necessary
+    secret_len := bs * 10
+    as := func(x int) []byte {
+        block := make([]byte, x)
+        for i := 0; i < x; i++ {
+            block[i] = byte('A')
+        }
+        return block
+    }
+    block := as(secret_len-1)
+    block_with_pt := oracle(block)[:secret_len]
+
+    var result []byte
+    for len(result) < secret_len-1 {
+        var b byte
+        for b = 0; b < 255; b++ {
+            ctblock := oracle(append(block, b))[:secret_len]
+            if string(ctblock) == string(block_with_pt) {
+                result = append(result, b)
+                new_as := as(secret_len-len(result)-1)
+                block_with_pt = oracle(new_as)[:secret_len]
+                block = append(new_as, result...)
+                break
+            }
+            if b == 254 {
+                return string(result)
+            }
+        }
+    }
+    return string(result)
+}
