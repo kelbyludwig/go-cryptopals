@@ -156,7 +156,7 @@ func BreakRepeatingKeyXor(ciphertext []byte) (plaintext, key []byte) {
 }
 
 //If there are duplicate ciphertext blocks, return true.
-func DetectECBMode(ciphertext []byte) bool {
+func DetectECB256Mode(ciphertext []byte) bool {
     var blocks []string = make([]string, len(ciphertext)/16)
     var index int
     for len(ciphertext) > 0 {
@@ -176,10 +176,64 @@ func DetectECBMode(ciphertext []byte) bool {
     return false
 }
 
+func DetectECB192Mode(ciphertext []byte) bool {
+    var blocks []string = make([]string, len(ciphertext)/12)
+    var index int
+    for len(ciphertext) > 0 {
+        blocks[index] = string(ciphertext[:12])
+        ciphertext = ciphertext[12:]
+        index++
+    }
+    var dups map[string]int = make(map[string]int)
+    for _,block := range blocks {
+        _,exists := dups[block]
+        if exists {
+            return true
+        } else {
+            dups[block] = 0
+        }
+    }
+    return false
+}
+
+func DetectECB128Mode(ciphertext []byte) bool {
+    var blocks []string = make([]string, len(ciphertext)/8)
+    var index int
+    for len(ciphertext) > 0 {
+        blocks[index] = string(ciphertext[:8])
+        ciphertext = ciphertext[8:]
+        index++
+    }
+    var dups map[string]int = make(map[string]int)
+    for _,block := range blocks {
+        _,exists := dups[block]
+        if exists {
+            return true
+        } else {
+            dups[block] = 0
+        }
+    }
+    return false
+}
+
+
 func AESModeDetectionOracle(ciphertext []byte) string {
-    if DetectECBMode(ciphertext) {
+    if DetectECB256Mode(ciphertext) {
         return "ECB"
     } else {
         return "CBC"
+    }
+}
+
+//Takes an oracle function (should be a block cipher) and returns the block size.
+func DetermineOracleBlockSize(oracle func(input []byte) []byte) int {
+    data := []byte("")
+    original_len := len(oracle(data))
+    for  {
+        data = append(data, byte('A'))
+        new_len := len(oracle(data))
+        if new_len > original_len {
+            return new_len - original_len
+        }
     }
 }

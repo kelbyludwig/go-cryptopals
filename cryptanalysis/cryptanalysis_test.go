@@ -106,7 +106,7 @@ func TestDetectECBMode(t *testing.T) {
     var detected bool
     for scanner.Scan() {
         line := encoding.HexToBytes(scanner.Text())
-        if DetectECBMode(line) && detected {
+        if DetectECB256Mode(line) && detected {
             t.Errorf("DetectECBMode: Detected multiple lines.")
             detected = true
         }
@@ -173,4 +173,30 @@ func TestDetectionOracle(t *testing.T) {
             t.Errorf("\tGuessed:  %v", output)
         }
     }
+}
+
+//Oracle for set 2 challenge 12
+func ECBChosenPrefix(input []byte, key []byte) []byte {
+    secret := encoding.Base64ToBytes(`Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK`)
+    data := append(input, secret...)
+    data = aes.Pad(data, 16)
+    return aes.ECBEncrypt(key, data)
+
+}
+
+func TestECBChosenPrefixAttack(t *testing.T) {
+    key := make([]byte, 16)
+    _, err := rand.Read(key)
+    if err != nil {
+        t.Errorf("ECBChosenPrefixAttack: Failed reading from urandom")
+    }
+    oracle := func(input []byte) []byte { return ECBChosenPrefix(input, key) }
+
+    //Determine block size of oracle
+    bs := DetermineOracleBlockSize(oracle)
+    if bs != 16 {
+        t.Errorf("ECBChosenPrefixAttack: Failed to determine correct block size")
+    }
+
+    //Determine if oracle is using ECB mode
 }
