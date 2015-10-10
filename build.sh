@@ -10,6 +10,10 @@ echo "BUILDING CRYPTANALYSIS"
 go test github.com/kelbyludwig/cryptopals/cryptanalysis -v
 go install github.com/kelbyludwig/cryptopals/cryptanalysis
 echo "----------------------------------------------"
+echo "BUILDING USER"
+go test github.com/kelbyludwig/cryptopals/user
+go install github.com/kelbyludwig/cryptopals/user
+echo "----------------------------------------------"
 echo "BUILDING AES"
 go test github.com/kelbyludwig/cryptopals/aes -v
 go install github.com/kelbyludwig/cryptopals/aes 
