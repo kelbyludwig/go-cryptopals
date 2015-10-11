@@ -1,6 +1,7 @@
 package user
 
 import "testing"
+import "github.com/kelbyludwig/cryptopals/xor"
 import "github.com/kelbyludwig/cryptopals/aes"
 
 func TestAdmin(t *testing.T) {
@@ -39,4 +40,19 @@ func TestComment(t *testing.T) {
     if DecryptComment(key, iv, ct) {
         t.Errorf("Comment: False admin positive.")
     }
+}
+
+func TestCBCBitflip(t *testing.T) {
+    as := []byte("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    admin := xor.Xor([]byte(";admin=true;\x00\x00\x00\x00"), []byte("AAAAAAAAAAAAAAAA"))
+    key, iv, ct := EncryptComment(string(as))
+    modblock := xor.Xor(ct[32:48], admin)
+    ctpre := ct[:32]
+    ctpost := ct[48:]
+    newct := append(ctpre, modblock...)
+    newct = append(newct, ctpost...)
+    if !DecryptComment(key, iv, newct){
+        t.Errorf("CBCBitflip: Failed to create admin block!")
+    }
+
 }

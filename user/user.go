@@ -2,7 +2,6 @@ package user
 
 import "github.com/kelbyludwig/cryptopals/aes"
 import "strings"
-import "fmt"
 
 type User struct {
     role string
@@ -84,8 +83,6 @@ func EncryptComment(comment string) (key, iv, ciphertext []byte) {
 
 func DecryptComment(key, iv, ciphertext []byte) bool {
     plaintext := aes.CBCDecrypt(key, iv, ciphertext)
-    fmt.Println("BYTES: ", plaintext)
-    fmt.Println("STRING:",string(plaintext))
     if strings.Contains(string(plaintext), ";admin=true;") {
          return true
     } else {
