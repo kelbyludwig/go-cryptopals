@@ -63,3 +63,30 @@ func TestCBCMode(t *testing.T) {
         t.Errorf("CBCMode: Expected result did not match actual result")
     }
 }
+
+func TestPaddingValidation(t *testing.T) {
+    t1 := []byte("ICE ICE BABY\x04\x04\x04\x04")
+    e1,r1 := StripPad(t1)
+    if e1 != nil {
+        t.Errorf("PaddingValidaton: Padding validation returned error when it shouldnt have")
+    }
+    if string(r1) != "ICE ICE BABY" {
+        t.Errorf("PaddingValidation: Padding strip is invalid")
+        t.Log(string(r1))
+    }
+    t2 := []byte("ICE ICE BABY\x05\x05\x05\x05")
+    e2,_ := StripPad(t2)
+    if e2 == nil {
+        t.Errorf("PaddingValidation: Invalid padding was considered valid")
+    }
+    t3 := []byte("ICE ICE BABY\x01\x02\x03\x04")
+    e3,_ := StripPad(t3)
+    if e3 == nil {
+        t.Errorf("PaddingValidation: Invalid padding was considered valid")
+    }
+    t4 := []byte("ICE ICE BABY\x04\x04\x04")
+    e4,_ := StripPad(t4)
+    if e4 == nil {
+        t.Errorf("PaddingValidation: Invalid padding was considered valid")
+    }
+}

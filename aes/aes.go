@@ -2,6 +2,7 @@ package aes
 
 import "fmt"
 import "os"
+import "errors"
 import "crypto/rand"
 import "crypto/aes"
 import "github.com/kelbyludwig/cryptopals/xor"
@@ -87,6 +88,22 @@ func Pad(input []byte, block_size int) []byte {
         padding[i] = byte(pad_value)
     }
     return append(input, padding...)
+}
+
+func StripPad(input []byte) (e error, result []byte) {
+    lb := input[len(input)-1]
+    lbi := int(lb)
+    result = input
+    for i := lbi; i > 0; i-- {
+        if result[len(result)-1] != lb {
+            e = errors.New("Invalid Padding")
+            result = nil
+            return
+        }
+        result = result[:len(result)-1]
+    }
+    e = nil
+    return
 }
 
 func RandBytes(size int) []byte {
