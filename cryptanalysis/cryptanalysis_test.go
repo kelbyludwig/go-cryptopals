@@ -184,13 +184,25 @@ func ECBChosenPrefix(input []byte, key []byte) []byte {
 
 }
 
+//Oracle for set 2 challenge 14
+func ECBChosenInfix(random_prefix, input, key []byte) []byte {
+    secret := encoding.Base64ToBytes(`Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK`)
+    data := append(random_prefix, input...)
+    data = append(data, secret...)
+    data = aes.Pad(data, 16)
+    return aes.ECBEncrypt(key, data)
+
+}
+
+//Test for set 2 challenge 12
 func TestECBChosenPrefixAttack(t *testing.T) {
     key := make([]byte, 16)
     _, err := rand.Read(key)
     if err != nil {
         t.Errorf("ECBChosenPrefixAttack: Failed reading from urandom")
     }
-    oracle := func(input []byte) []byte { return ECBChosenPrefix(input, key) }
+
+    oracle := func(input []byte) []byte { return ECBChosenPrefix( input, key) }
 
     //Determine block size of oracle
     bs := DetermineOracleBlockSize(oracle)
@@ -216,3 +228,42 @@ func TestECBChosenPrefixAttack(t *testing.T) {
     }
 
 }
+
+//Test for set 2 challenge 14
+func TestECBChosenInfixAttack(t *testing.T) {
+    key := make([]byte, 16)
+    _, err := rand.Read(key)
+    if err != nil {
+        t.Errorf("ECBChosenInfixAttack: Failed reading from urandom")
+    }
+    var prefix uint32
+    binary.Read(rand.Reader, binary.LittleEndian, &prefix)
+    num := int(prefix % 32)
+    random_prefix :=  aes.RandBytes(num)
+    oracle := func(input []byte) []byte { return ECBChosenInfix(random_prefix, input, key) }
+
+    //Determine block size of oracle
+    bs := DetermineOracleBlockSize(oracle)
+    if bs != 16 {
+        t.Errorf("ECBChosenInfixAttack: Failed to determine correct block size")
+    }
+
+    //Determine if oracle is using ECB mode
+
+    //TODO: This is silly. You should make your cryptanalysis functions take an oracle function. Will be more reusable.
+    data := []byte("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    if !DetectECB256Mode(oracle(data)) {
+        t.Errorf("ECBChosenInfixAttack: Failed to correctly guess that the oracle used ECB mode.")
+    }
+
+    result := ECBSecretInfixAttack(oracle)
+    expected_result := `Rollin' in my 5.0
+    With my rag-top down so my hair can blow
+    The girlies on standby waving just to say hi
+    Did you stop? No, I just drove by`
+    if result[:12] != expected_result[:12] {
+        t.Errorf("ECBChosenInfixAttack: Expected decryption did not actually match real decryption")
+    }
+
+}
+

@@ -271,3 +271,67 @@ func ECBSecretSuffixAttack(oracle func(input []byte) []byte) string {
     }
     return string(result)
 }
+
+func DetermineDrop(oracle func(input []byte) []byte) int {
+    var as []byte
+    for !DetectECB256Mode(oracle(as)) {
+        as = append(as, 'A')
+    }
+    ct := oracle(as)
+    var i int
+    for {
+        prev_block := ct[:16]
+        next_block := ct[16:32]
+        if string(prev_block) == string(next_block) {
+           break
+        }
+        i += 1
+        ct = ct[16:]
+    }
+    return 32 - (len(as) - (i*16))
+}
+
+func ECBSecretInfixAttack(oracle func(input []byte) []byte) string {
+    bs := DetermineOracleBlockSize(oracle)
+    secret_size := DetermineDrop(oracle)
+    offset := bs - (secret_size % bs)
+    drop_size := offset + secret_size
+    new_oracle := func (input []byte) []byte {
+        pre := make([]byte, offset)
+        input = append(pre, input...)
+        return oracle(input)[drop_size:]
+    }
+
+    secret_len := (bs * 10)
+
+    as := func(x int) []byte {
+        block := make([]byte, x)
+        for i := 0; i < x; i++ {
+            block[i] = byte('A')
+        }
+        return block
+    }
+    block := as(secret_len-1)
+    block_with_pt := new_oracle(block)[:secret_len]
+
+    var result []byte
+    for len(result) < secret_len-1 {
+        var b byte
+        for b = 0; b < 255; b++ {
+            ctblock := new_oracle(append(block, b))[:secret_len]
+            if string(ctblock) == string(block_with_pt) {
+                result = append(result, b)
+                new_as := as(secret_len-len(result)-1)
+                block_with_pt = new_oracle(new_as)[:secret_len]
+                block = append(new_as, result...)
+                break
+            }
+            if b == 254 {
+                return string(result)
+            }
+        }
+    }
+    return string(result)
+
+
+}
