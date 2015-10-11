@@ -33,3 +33,10 @@ func TestECBCutAndPaste(t *testing.T) {
     }
 
 }
+
+func TestComment(t *testing.T) {
+    key, iv, ct := EncryptComment("KELBY")
+    if DecryptComment(key, iv, ct) {
+        t.Errorf("Comment: False admin positive.")
+    }
+}

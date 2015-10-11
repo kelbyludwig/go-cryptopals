@@ -2,6 +2,7 @@ package user
 
 import "github.com/kelbyludwig/cryptopals/aes"
 import "strings"
+import "fmt"
 
 type User struct {
     role string
@@ -62,4 +63,32 @@ func CTIsAdmin(key []byte, ct []byte) bool {
 
 func DecryptCookie(key []byte, ct []byte) string {
     return string(aes.ECBDecrypt(key, ct))
+}
+
+//For simplicity sake, return key and iv too.
+func EncryptComment(comment string) (key, iv, ciphertext []byte) {
+    pre := []byte("comment1=cooking%20MCs;userdata=")
+    //Eat illegal characters
+    comment = strings.Split(comment, ";")[0]
+    comment = strings.Split(comment, "=")[0]
+    combytes := []byte(comment)
+    post := []byte(";comment2=%20like%20a%20pound%20of%20bacon")
+    plaintext := append(pre, combytes...)
+    plaintext = append(plaintext, post...)
+    plaintext = aes.Pad(plaintext, 16)
+    key = aes.RandBytes(16)
+    iv = aes.RandBytes(16)
+    ciphertext = aes.CBCEncrypt(key, iv, plaintext)
+    return
+}
+
+func DecryptComment(key, iv, ciphertext []byte) bool {
+    plaintext := aes.CBCDecrypt(key, iv, ciphertext)
+    fmt.Println("BYTES: ", plaintext)
+    fmt.Println("STRING:",string(plaintext))
+    if strings.Contains(string(plaintext), ";admin=true;") {
+         return true
+    } else {
+         return false
+    }
 }
