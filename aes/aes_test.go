@@ -113,7 +113,7 @@ func CBCCookieCreate() (key, iv, ct []byte) {
     scanner := bufio.NewScanner(file)
     r := rand.NewSource(time.Now().UnixNano())
     rnd := rand.New(r)
-    line := rnd.Intn(11)
+    line := rnd.Intn(10)
     var pt []byte
     var i int
     for scanner.Scan() {
@@ -133,8 +133,8 @@ func CBCCookieCreate() (key, iv, ct []byte) {
 //The CBC padding oracle function
 func CBCCookieValidate(key, iv, ciphertext []byte) bool {
     pt := CBCDecrypt(key, iv, ciphertext)
-    fmt.Println("------------------")
-    fmt.Println("DEBUG: Decrypted\n", pt)
+    //fmt.Println("------------------")
+    //fmt.Println("DEBUG: Decrypted\n", pt)
     e1,_ := StripPad(pt)
     if e1 != nil {
         return false

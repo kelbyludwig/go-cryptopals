@@ -147,23 +147,19 @@ func CBCPaddingOracle(oracle func (input []byte) bool, ciphertext []byte) {
     blocks := Blocks(bs, ciphertext)
 
     //Panic for empty input ciphertext
-    if len(blocks) == 0 {
-        panic(errors.New("PANIC!!!! Your ciphertext input is empty"))
+    if len(blocks) < 2 {
+        panic(errors.New("PANIC!!!! Your ciphertext input is too small"))
     }
 
-    //Input ciphertext is less than two blocks long. Prepend with a block of nonsense.
-    if len(blocks) < 2 {
-       b := blocks[0]
-       b = append([]byte("AAAAAAAAAAAAAAAA"), b...)
-       blocks = Blocks(bs, b)
-    }
+    fmt.Println("DEBUG: Number of blocks:", len(blocks))
 
     //Iterating over blocks
-    for i := 0; i < len(blocks)-2; i++ {
+    plaintext := make([]byte, 0)
+    for i := 0; i < len(blocks)-1; i++ {
         //Ciphertext block to modify to find valid padding
-        mod_block := blocks[i]
+        mod_block := make([]byte, bs)
+        copy(mod_block, blocks[i])
         var expected_padding byte = byte(1)
-
         intermediate_state := make([]byte, bs)
         //Loop that builds the intermediate state block
         for j := len(mod_block)-1; j >= 0; j-- {
@@ -178,7 +174,6 @@ func CBCPaddingOracle(oracle func (input []byte) bool, ciphertext []byte) {
                 mod_block[j] = iterator_byte
                 two_blocks := append(mod_block, blocks[i+1]...)
                 if oracle(two_blocks) {
-                    fmt.Println("DEBUG: Found new byte!", iterator_byte)
                     intermediate_state[j] = iterator_byte ^ expected_padding
                     expected_padding++
                     for k := len(mod_block)-1; k >= j; k-- {
@@ -190,22 +185,19 @@ func CBCPaddingOracle(oracle func (input []byte) bool, ciphertext []byte) {
                 iterator_byte++
                 //We have looped through all bytes
                 if iterator_byte == 0 {
-                    fmt.Println("DEBUG: Looped thru all bytes")
                     break
                 }
                 //We have tried all expected padding values
                 if expected_padding == 17 {
-                    fmt.Println("DEBUG: Tried all expected padding values.")
                     break
                 }
             }
         }
-        fmt.Println("PLAINTEXT???:")
-        fmt.Println(string(xor.Xor(intermediate_state, blocks[i])))
-        fmt.Println(xor.Xor(intermediate_state, blocks[i]))
-        break
+        plaintext = append(plaintext, xor.Xor(blocks[i], intermediate_state)...)
     }
-
+    fmt.Println("PLAINTEXT:")
+    fmt.Println(plaintext)
+    fmt.Println(string(plaintext))
 }
 
 
