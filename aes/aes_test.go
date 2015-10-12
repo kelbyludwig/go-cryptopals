@@ -1,6 +1,8 @@
 package aes
 
 import "github.com/kelbyludwig/cryptopals/encoding"
+import "math/rand"
+import "time"
 import "testing"
 import "bufio"
 import "fmt"
@@ -89,4 +91,60 @@ func TestPaddingValidation(t *testing.T) {
     if e4 == nil {
         t.Errorf("PaddingValidation: Invalid padding was considered valid")
     }
+
+    key := RandBytes(16)
+    iv := RandBytes(16)
+    ct1 := CBCEncrypt(key, iv, t1)
+    ct2 := CBCEncrypt(key, iv, t2)
+    if !CBCCookieValidate(key, iv, ct1) {
+       t.Errorf("PaddingValidation: Cookie validation function failed!")
+    }
+    if CBCCookieValidate(key, iv, ct2) {
+       t.Errorf("PaddingValidation: Cookie validation function failed!")
+    }
+}
+
+//One of the oracle functions for the CBC padding oracle.
+func CBCCookieCreate() (key, iv, ct []byte) {
+    key = RandBytes(16)
+    iv  = RandBytes(16)
+    file,_ := os.Open("../files/17.txt")
+    defer file.Close()
+    scanner := bufio.NewScanner(file)
+    r := rand.NewSource(time.Now().UnixNano())
+    rnd := rand.New(r)
+    line := rnd.Intn(11)
+    var pt []byte
+    var i int
+    for scanner.Scan() {
+        if i == line {
+            pt = encoding.Base64ToBytes(scanner.Text())
+            break
+        }
+        i++
+        scanner.Text()
+    }
+    pt = Pad(pt, 16)
+    fmt.Println("PLAINTEXT:\n", "(", len(pt), ")", string(pt), "\n", pt)
+    ct = CBCEncrypt(key, iv, pt)
+    return
+}
+
+//The CBC padding oracle function
+func CBCCookieValidate(key, iv, ciphertext []byte) bool {
+    pt := CBCDecrypt(key, iv, ciphertext)
+    fmt.Println("------------------")
+    fmt.Println("DEBUG: Decrypted\n", pt)
+    e1,_ := StripPad(pt)
+    if e1 != nil {
+        return false
+    } else {
+        return true
+    }
+}
+
+func TestCBCPaddingOracle(t *testing.T) {
+    key, iv, ct := CBCCookieCreate()
+    oracle := func (in []byte) bool { return CBCCookieValidate(key, iv, in) }
+    CBCPaddingOracle(oracle, ct)
 }
