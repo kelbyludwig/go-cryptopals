@@ -3,9 +3,34 @@ package aes
 import "fmt"
 import "os"
 import "errors"
+import "encoding/binary"
+import "binary"
 import "crypto/rand"
 import "crypto/aes"
 import "github.com/kelbyludwig/cryptopals/xor"
+
+//TODO: Currently assumes plaintext that is a multiple of the blocksize
+func CTREncrypt(key, plaintext []byte) (ciphertext []byte) {
+    ctr := uint64(0)
+    nonce := uint64(0)
+    for len(plaintext) > 0 {
+        ctr_block := new(bytes.Buffer)
+        binary.Write(ctr_block, binary.LittleEndian, nonce)
+        binary.Write(ctr_block, binary.LittleEndian, ctr)
+        ctr++
+        pt_block := plaintext[:16]
+        ct_block := ECBEncrypt(key, ctr_block.Bytes())
+        ciphertext = append(ciphertext, ct_block...)
+        plaintext = plaintext[16:]
+    }
+    return ciphertext
+}
+
+func CTRDecrypt(key, ciphertext []byte) (plaintext []byte) {
+    plaintext = CTREncrypt(key, ciphertext)
+    return
+}
+
 
 func CBCEncrypt(key, iv, plaintext []byte) (ciphertext []byte) {
     for len(plaintext) > 0 {
@@ -159,7 +184,7 @@ func CBCPaddingOracle(oracle func (input []byte) bool, ciphertext []byte) {
         //Ciphertext block to modify to find valid padding
         mod_block := make([]byte, bs)
         copy(mod_block, blocks[i])
-        var expected_padding byte = byte(1)
+        expected_padding := byte(1)
         intermediate_state := make([]byte, bs)
         //Loop that builds the intermediate state block
         for j := len(mod_block)-1; j >= 0; j-- {
@@ -193,12 +218,13 @@ func CBCPaddingOracle(oracle func (input []byte) bool, ciphertext []byte) {
                 }
             }
         }
+        fmt.Println("IS:")
+        fmt.Println(intermediate_state)
+        fmt.Println()
         plaintext = append(plaintext, xor.Xor(blocks[i], intermediate_state)...)
     }
     fmt.Println("PLAINTEXT:")
     fmt.Println(plaintext)
     fmt.Println(string(plaintext))
 }
-
-
 
