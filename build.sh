@@ -17,3 +17,7 @@ echo "----------------------------------------------"
 echo "BUILDING AES"
 go test github.com/kelbyludwig/cryptopals/aes -v
 go install github.com/kelbyludwig/cryptopals/aes 
+echo "----------------------------------------------"
+echo "BUILDING MTRAND"
+go test github.com/kelbyludwig/cryptopals/mtrand -v
+go install github.com/kelbyludwig/cryptopals/mtrand
