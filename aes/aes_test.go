@@ -142,9 +142,21 @@ func CBCCookieValidate(key, iv, ciphertext []byte) bool {
         return true
     }
 }
-
+//TODO: This is not working 100%. Last block is scrambled...
 func TestCBCPaddingOracle(t *testing.T) {
     key, iv, ct := CBCCookieCreate()
     oracle := func (in []byte) bool { return CBCCookieValidate(key, iv, in) }
     CBCPaddingOracle(oracle, ct)
+}
+
+//Test for set 3 challenge 18
+func TestCTRDecrypt(t *testing.T) {
+    ct := encoding.Base64ToBytes("L77na/nrFsKvynd6HzOoG7GHTLXsTVu9qvY/2syLXzhPweyyMTJULu/6/kXX0KSvoOLSFQ==")
+    key := []byte("YELLOW SUBMARINE")
+    result := string(CTRDecrypt(key, uint64(0), ct))
+    if result != "Yo, VIP Let's kick it Ice, Ice, baby Ice, Ice, baby " {
+        t.Errorf("CTRDecrypt: Actual result did not match expected result!")
+        t.Errorf("%v", []byte(result))
+        t.Errorf("%v", []byte("Yo, VIP Let's kick it Ice, Ice, baby Ice, Ice, baby"))
+    }
 }

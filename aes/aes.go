@@ -3,31 +3,36 @@ package aes
 import "fmt"
 import "os"
 import "errors"
+import "bytes"
 import "encoding/binary"
-import "binary"
 import "crypto/rand"
 import "crypto/aes"
 import "github.com/kelbyludwig/cryptopals/xor"
 
-//TODO: Currently assumes plaintext that is a multiple of the blocksize
-func CTREncrypt(key, plaintext []byte) (ciphertext []byte) {
+func CTREncrypt(key []byte, nonce uint64, plaintext []byte) (ciphertext []byte) {
     ctr := uint64(0)
-    nonce := uint64(0)
     for len(plaintext) > 0 {
         ctr_block := new(bytes.Buffer)
         binary.Write(ctr_block, binary.LittleEndian, nonce)
         binary.Write(ctr_block, binary.LittleEndian, ctr)
         ctr++
-        pt_block := plaintext[:16]
-        ct_block := ECBEncrypt(key, ctr_block.Bytes())
+        var pt_block []byte
+        if len(plaintext) < 16 {
+            pt_block = plaintext[:len(plaintext)]
+            plaintext = plaintext[len(plaintext):]
+        } else {
+            pt_block = plaintext[:16]
+            plaintext = plaintext[16:]
+        }
+        ks_block := ECBEncrypt(key, ctr_block.Bytes())
+        ct_block := xor.Xor(pt_block, ks_block[:len(pt_block)])
         ciphertext = append(ciphertext, ct_block...)
-        plaintext = plaintext[16:]
     }
-    return ciphertext
+    return
 }
 
-func CTRDecrypt(key, ciphertext []byte) (plaintext []byte) {
-    plaintext = CTREncrypt(key, ciphertext)
+func CTRDecrypt(key []byte, nonce uint64, ciphertext []byte) (plaintext []byte) {
+    plaintext = CTREncrypt(key, nonce, ciphertext)
     return
 }
 

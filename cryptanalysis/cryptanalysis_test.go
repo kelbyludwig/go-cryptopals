@@ -267,3 +267,35 @@ func TestECBChosenInfixAttack(t *testing.T) {
 
 }
 
+//Test for set 3 challenge 20
+func TestRepeatNonceCTRMode(t *testing.T) {
+    file,err := os.Open("../files/20.txt")
+    if err != nil {
+        t.Errorf("DetectECBMode: Error opening file.")
+    }
+
+    defer file.Close()
+
+    scanner := bufio.NewScanner(file)
+
+    smallest_len := 99999999
+    var lines [][]byte
+    for scanner.Scan() {
+        line := encoding.Base64ToBytes(scanner.Text())
+        if len(line) < smallest_len {
+            smallest_len = len(line)
+        }
+        lines = append(lines, line)
+    }
+
+    var ciphertext_blob []byte
+    for _,l := range lines {
+        ciphertext_blob = append(ciphertext_blob, l[:smallest_len]...)
+    }
+    pt,_ := BreakRepeatingKeyXor(ciphertext_blob)
+    expected_result := "I'm rated \"R\"...this is a warning, ya better void"
+    if string(pt[:len(expected_result)]) != expected_result {
+        t.Errorf("RepeatNonceCTRMode: Expected result did not match actual result!")
+    }
+
+}
