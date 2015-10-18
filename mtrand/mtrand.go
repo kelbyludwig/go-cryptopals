@@ -1,15 +1,8 @@
 package mtrand
 
+import "time"
+
 const n uint32 = 624
-const w uint32 = 32
-const m uint32 = 397
-const r uint32 = 31
-const a uint32 = 0x9908B0DF
-const d uint32 = 0xFFFFFFFF
-const c uint32 = 0xEFC60000
-const f uint32 = 1812433253
-const lower_mask uint32 = (1 << r) - 1
-const upper_mask uint32 = (^lower_mask) & ((1 << w)-1)
 
 type MTRand struct {
     MT [n]uint32
@@ -55,4 +48,17 @@ func NewMTRand(seed uint32) MTRand {
     mt := MTRand{}
     mt.seed_mt(seed)
     return mt
+}
+
+func CrackTimeSeed(num uint32) (seed uint32) {
+    current_time := uint32(time.Now().Unix())
+    for {
+        mtr := NewMTRand(current_time)
+        attempt := mtr.extract_number()
+        if attempt == num {
+            seed = current_time
+            return
+        }
+        current_time -= 1
+    }
 }
