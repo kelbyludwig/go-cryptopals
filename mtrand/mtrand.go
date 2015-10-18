@@ -1,17 +1,12 @@
 package mtrand
 
-const n uint32 = 64
+const n uint32 = 624
 const w uint32 = 32
 const m uint32 = 397
 const r uint32 = 31
 const a uint32 = 0x9908B0DF
-const u uint32 = 11
 const d uint32 = 0xFFFFFFFF
-const s uint32 = 7
-const b uint32 = 0x9D2C5680
-const t uint32 = 15
 const c uint32 = 0xEFC60000
-const l uint32 = 18
 const f uint32 = 1812433253
 const lower_mask uint32 = (1 << r) - 1
 const upper_mask uint32 = (^lower_mask) & ((1 << w)-1)
@@ -24,9 +19,8 @@ type MTRand struct {
 func (mt *MTRand) seed_mt(seed uint32) {
     mt.index = n
     mt.MT[0] = seed
-    low_mask := uint32((1 << w) -1)
-    for i := uint32(1); i < n-1; i++ {
-        mt.MT[i] = low_mask & uint32(f * mt.MT[i-1] ^ (mt.MT[i-1] >> (w-2))) + i
+    for i := uint32(1); i < n; i++ {
+        mt.MT[i] = uint32(1812433253 * (mt.MT[i - 1] ^ mt.MT[i - 1] >> 30) + i)
     }
 }
 
@@ -38,22 +32,21 @@ func (mt *MTRand) extract_number() uint32 {
         mt.twist()
     }
     var y uint32 = mt.MT[mt.index]
-    y = y ^ ((y >> u) & d)
-    y = y ^ ((y << s) & b)
-    y = y ^ ((y << t) & c)
-    y = y ^ (y >> l)
+    y ^= uint32(y >> 11)
+    y ^= uint32((y << 7) & 2636928640)
+    y ^= uint32((y << 15) & 4022730752)
+    y ^= uint32(y >> 18)
     mt.index = mt.index + 1
-    return (y & ((1 << w) - 1))
+    return y
 }
 
 func (mt *MTRand) twist() {
 	for i := uint32(0); i < n; i++ {
-		x := (mt.MT[i] & upper_mask) + (mt.MT[(i+1) % n] & lower_mask)
-		xA := x >> 1
-		if (x % 2) != 0 {
-			xA = xA ^ a
-		}
-		mt.MT[i] = mt.MT[(i + m) % n] ^ xA
+        y := uint32((mt.MT[i] & 0x80000000) + (mt.MT[(i + 1) % 624] & 0x7fffffff))
+        mt.MT[i] = mt.MT[(i + 397) % 624] ^ y >> 1
+        if y % 2 != 0 {
+            mt.MT[i] = mt.MT[i] ^ 0x9908b0df
+        }
 	}
 	mt.index = 0
 }
