@@ -62,3 +62,19 @@ func CrackTimeSeed(num uint32) (seed uint32) {
         current_time -= 1
     }
 }
+
+//Given the output of a MTRand number, "untemper" the value to recreate it's respective MT state value.
+func Untemper(mtOutput uint32) uint32 {
+    mtOutput ^= uint32(mtOutput >> 18)
+    mtOutput ^= uint32((mtOutput << 15) & 4022730752)
+    mask := uint32(0x7f)
+    temp := uint32(mtOutput & mask)
+    for i := 7; i < 32; i+=7 {
+        mask <<= 7
+        temp |= ((2636928640 & (temp << 7)) ^ mtOutput) & mask
+	}
+    mtOutput = temp
+    temp = mtOutput ^ uint32(mtOutput >> 11)
+	mtOutput ^= temp >> 11
+    return mtOutput
+}

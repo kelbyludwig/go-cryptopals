@@ -11,6 +11,7 @@ func TestMTRand(t *testing.T) {
     }
 }
 
+//A test for challenge 22
 func TestSeedCrack(t *testing.T) {
     rand_sleep := time.Duration(rand.Intn(50))
     time.Sleep(rand_sleep * 100 * time.Millisecond)
