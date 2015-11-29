@@ -43,3 +43,8 @@ func TestUntemper(t *testing.T) {
 		t.Errorf("Untemper: Actual result did not match exptected result")
 	}
 }
+
+//A test for challenge 24
+func TestMTRandStream(t *testing.T) {
+	t.Log("[TODO] not in the mood.")
+}
