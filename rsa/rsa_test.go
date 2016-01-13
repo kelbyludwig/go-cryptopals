@@ -17,13 +17,11 @@ func TestImproperKeypairGen(t *testing.T) {
 }
 
 func TestKeypairGen(t *testing.T) {
-	keypair, err := GenerateKeyPair(1024)
+	_, err := GenerateKeyPair(1024)
 
 	if err != nil {
 		t.Errorf("Failed to generated keypair with error:\n%v\n", err)
 	}
-
-	t.Logf("KeyPair generation success! (%v, %v, %v)\n", keypair.Modulus, keypair.PrivateExp, keypair.PublicExp)
 }
 
 func TestKeypairGenReliablility(t *testing.T) {

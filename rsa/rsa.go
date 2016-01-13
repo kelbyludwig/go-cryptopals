@@ -6,12 +6,22 @@ import (
 	"math/big"
 )
 
-type KeyPair struct {
+type PublicKey struct {
+	Modulus   *big.Int
+	PublicExp *big.Int
+}
+
+type PrivateKey struct {
 	Modulus    *big.Int
-	PublicExp  *big.Int
 	PrivateExp *big.Int
 }
 
+type KeyPair struct {
+	PublicKey  *PublicKey
+	PrivateKey *PrivateKey
+}
+
+//GenerateBigPrime generates a *big.Int probable prime of parameter "bytes" size.
 func GenerateBigPrime(bytes uint) (p *big.Int, err error) {
 	p = new(big.Int)
 	bytesBuffer := make([]byte, bytes)
@@ -32,6 +42,9 @@ func GenerateBigPrime(bytes uint) (p *big.Int, err error) {
 //from a CSPRNG.
 func GenerateKeyPair(bits uint) (keypair *KeyPair, err error) {
 	keypair = new(KeyPair)
+	keypair.PublicKey = new(PublicKey)
+	keypair.PrivateKey = new(PrivateKey)
+
 	if bits == 0 {
 		err = errors.New("RSA modulus size must not be zero.")
 		return
@@ -54,7 +67,8 @@ func GenerateKeyPair(bits uint) (keypair *KeyPair, err error) {
 		return
 	}
 	modulus := new(big.Int).Mul(p, q)
-	publicExp := big.NewInt(65537)
+	publicExp := big.NewInt(3)
+	//publicExp := big.NewInt(65537)
 
 	//totient = (p-1) * (q-1)
 	totient := new(big.Int)
@@ -63,8 +77,9 @@ func GenerateKeyPair(bits uint) (keypair *KeyPair, err error) {
 
 	privateExp := new(big.Int).ModInverse(totient, modulus)
 
-	keypair.Modulus = modulus
-	keypair.PublicExp = publicExp
-	keypair.PrivateExp = privateExp
+	keypair.PublicKey.Modulus = modulus
+	keypair.PrivateKey.Modulus = modulus
+	keypair.PublicKey.PublicExp = publicExp
+	keypair.PrivateKey.PrivateExp = privateExp
 	return
 }
