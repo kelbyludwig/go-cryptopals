@@ -25,3 +25,12 @@ func TestKeypairGen(t *testing.T) {
 
 	t.Logf("KeyPair generation success! (%v, %v, %v)\n", keypair.Modulus, keypair.PrivateExp, keypair.PublicExp)
 }
+
+func TestKeypairGenReliablility(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		_, err := GenerateKeyPair(1024)
+		if err != nil {
+			t.Errorf("Failed to complete 100 error-free iterations of keygen. Failed at iteration %v.\n", i)
+		}
+	}
+}
